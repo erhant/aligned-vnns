@@ -1,0 +1,12 @@
+[package]
+name = "zkvdb-embedder"
+version = "0.1.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+ollama-rs = "0.2.1"
+tokio = { version = "1", features = ["full"] }
+serde = "*"
+serde_json = "*"
+clap = { version = "4.0", features = ["derive"] }

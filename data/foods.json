@@ -1,0 +1,191 @@
+[
+  {
+    "name": "Spaghetti Bolognese",
+    "description": "Italian pasta with minced meat and tomato sauce, rich and savory"
+  },
+  {
+    "name": "Sushi",
+    "description": "Japanese vinegared rice with raw fish, light and fresh"
+  },
+  {
+    "name": "Tacos",
+    "description": "Mexican tortilla with spicy meat, cheese, and vegetables"
+  },
+  {
+    "name": "Apple Pie",
+    "description": "Classic American dessert, sweet with cinnamon and baked apples"
+  },
+  { "name": "Croissant", "description": "French pastry, flaky and buttery" },
+  {
+    "name": "Caesar Salad",
+    "description": "Salad with romaine lettuce, croutons, parmesan, and creamy dressing"
+  },
+  {
+    "name": "Miso Soup",
+    "description": "Japanese broth made with fermented soy, light and savory"
+  },
+  {
+    "name": "Cheeseburger",
+    "description": "Grilled beef patty with melted cheese, savory and juicy"
+  },
+  {
+    "name": "Falafel",
+    "description": "Middle Eastern fried chickpea balls, crispy and spiced"
+  },
+  {
+    "name": "Pad Thai",
+    "description": "Thai stir-fried noodles with peanuts, tangy and sweet"
+  },
+  {
+    "name": "Ratatouille",
+    "description": "French stewed vegetables, earthy and herbaceous"
+  },
+  {
+    "name": "Pizza Margherita",
+    "description": "Classic Italian pizza with tomatoes, mozzarella, and basil"
+  },
+  {
+    "name": "Churros",
+    "description": "Fried dough pastry, crispy and dusted with sugar, often served with chocolate"
+  },
+  {
+    "name": "Bibimbap",
+    "description": "Korean rice bowl with mixed vegetables, spicy sauce, and egg"
+  },
+  {
+    "name": "Lasagna",
+    "description": "Italian pasta layered with meat sauce and cheese, rich and cheesy"
+  },
+  {
+    "name": "Hummus",
+    "description": "Middle Eastern chickpea dip, creamy and garlicky"
+  },
+  {
+    "name": "Ramen",
+    "description": "Japanese noodle soup with broth, often savory and umami-rich"
+  },
+  {
+    "name": "French Fries",
+    "description": "Crispy fried potatoes, salty and golden brown"
+  },
+  {
+    "name": "Butter Chicken",
+    "description": "Indian curry with creamy tomato sauce, mildly spicy"
+  },
+  {
+    "name": "Kimchi",
+    "description": "Fermented Korean cabbage, tangy, spicy, and crunchy"
+  },
+  {
+    "name": "Gnocchi",
+    "description": "Italian potato dumplings, soft and pillowy, often served with sauce"
+  },
+  {
+    "name": "Gelato",
+    "description": "Italian ice cream, creamy and dense, available in various flavors"
+  },
+  {
+    "name": "Shakshuka",
+    "description": "North African dish with poached eggs in spiced tomato sauce"
+  },
+  {
+    "name": "Chicken Tikka",
+    "description": "Indian marinated chicken, smoky and spiced"
+  },
+  {
+    "name": "Baklava",
+    "description": "Middle Eastern pastry with nuts and honey, flaky and sweet"
+  },
+  {
+    "name": "Pho",
+    "description": "Vietnamese noodle soup with herbs and beef, savory and aromatic"
+  },
+  {
+    "name": "Ceviche",
+    "description": "Seafood dish marinated in citrus, fresh and tangy"
+  },
+  {
+    "name": "Clam Chowder",
+    "description": "Creamy soup with clams and potatoes, rich and hearty"
+  },
+  {
+    "name": "Biryani",
+    "description": "Indian rice dish with spices and meat, fragrant and flavorful"
+  },
+  {
+    "name": "Peking Duck",
+    "description": "Chinese roasted duck with crispy skin, savory and sweet"
+  },
+  {
+    "name": "Tiramisu",
+    "description": "Italian dessert with coffee-soaked layers and mascarpone, creamy and sweet"
+  },
+  {
+    "name": "Greek Salad",
+    "description": "Salad with tomatoes, cucumbers, feta, and olives, light and tangy"
+  },
+  {
+    "name": "Steak",
+    "description": "Grilled or pan-seared beef, tender and juicy"
+  },
+  {
+    "name": "Pasta Carbonara",
+    "description": "Italian pasta with egg, cheese, and pancetta, creamy and savory"
+  },
+  {
+    "name": "Dim Sum",
+    "description": "Chinese steamed dumplings, often savory and delicate"
+  },
+  {
+    "name": "Crème Brûlée",
+    "description": "French custard with caramelized sugar top, creamy and crunchy"
+  },
+  {
+    "name": "Fish and Chips",
+    "description": "British battered fried fish with fries, crispy and savory"
+  },
+  {
+    "name": "Guacamole",
+    "description": "Mexican avocado dip with lime and cilantro, creamy and tangy"
+  },
+  {
+    "name": "Currywurst",
+    "description": "German sausage with curry-flavored ketchup, spicy and savory"
+  },
+  {
+    "name": "Tzatziki",
+    "description": "Greek yogurt dip with cucumber and garlic, cool and refreshing"
+  },
+  {
+    "name": "Moussaka",
+    "description": "Greek casserole with eggplant and minced meat, hearty and spiced"
+  },
+  {
+    "name": "Pavlova",
+    "description": "Meringue-based dessert with fruit, crispy outside, soft inside"
+  },
+  {
+    "name": "Borscht",
+    "description": "Eastern European beet soup, tangy and earthy"
+  },
+  {
+    "name": "Tempura",
+    "description": "Japanese battered fried seafood and vegetables, crispy and light"
+  },
+  {
+    "name": "Focaccia",
+    "description": "Italian flatbread, soft and herb-infused"
+  },
+  {
+    "name": "Chow Mein",
+    "description": "Chinese stir-fried noodles, savory and slightly sweet"
+  },
+  {
+    "name": "Panna Cotta",
+    "description": "Italian creamy dessert, smooth and light"
+  },
+  {
+    "name": "Bruschetta",
+    "description": "Italian appetizer with tomatoes on grilled bread, tangy and fresh"
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "name": "Spaghetti Bolognese",
+    "description": "Italian pasta with minced meat and tomato sauce, rich and savory"
+  },
+  {
+    "name": "Sushi",
+    "description": "Japanese vinegared rice with raw fish, light and fresh"
+  },
+  {
+    "name": "Tacos",
+    "description": "Mexican tortilla with spicy meat, cheese, and vegetables"
+  },
+  {
+    "name": "Apple Pie",
+    "description": "Classic American dessert, sweet with cinnamon and baked apples"
+  },
+  { "name": "Croissant", "description": "French pastry, flaky and buttery" },
+  {
+    "name": "Caesar Salad",
+    "description": "Salad with romaine lettuce, croutons, parmesan, and creamy dressing"
+  },
+  {
+    "name": "Miso Soup",
+    "description": "Japanese broth made with fermented soy, light and savory"
+  },
+  {
+    "name": "Cheeseburger",
+    "description": "Grilled beef patty with melted cheese, savory and juicy"
+  },
+  {
+    "name": "Falafel",
+    "description": "Middle Eastern fried chickpea balls, crispy and spiced"
+  },
+  {
+    "name": "Pad Thai",
+    "description": "Thai stir-fried noodles with peanuts, tangy and sweet"
+  }
+]

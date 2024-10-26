@@ -87,5 +87,8 @@ fn main() {
         // Verify the proof.
         client.verify(&proof, &vk).expect("failed to verify proof");
         println!("Successfully verified proof!");
+
+        // Export proof
+        proof.save("./proof.json").expect("failed to save proof");
     }
 }
