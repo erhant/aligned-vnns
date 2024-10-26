@@ -15,6 +15,8 @@ alloy_sol_types::sol! {
 ///
 /// Returns the indices of the top `top_k` samples in the index.
 pub fn index_and_query(samples: Vec<Vec<f32>>, query: Vec<f32>, top_k: u32) -> Vec<u32> {
+    // let raw_samples = include_bytes!("../../data/foods-smol.json");
+    // let x = Vec::<Vec<f32>>::fr(raw_samples.iter());
     // ensure each sample has the same dimension as the query
     let len = query.len();
     for sample in &samples {

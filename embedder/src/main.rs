@@ -9,7 +9,11 @@ struct Cli {
     command: Commands,
 }
 
-const DEFAULT_MODEL: &str = "nomic-embed-text:latest";
+const DEFAULT_MODEL: &str = "all-minilm:latest"; // dim: 384
+
+// const DEFAULT_MODEL: &str = "nomic-embed-text:latest"; // dim: 768
+
+// const DEFAULT_MODEL: &str = "mxbai-embed-large:latest"; // dim: 1024
 
 #[derive(Subcommand)]
 enum Commands {
@@ -22,7 +26,7 @@ enum Commands {
     },
     /// Generate embeddings from a text, can be piped to `pbcopy`
     Query {
-        #[arg(short, long, help = "Path to the embedded data file")]
+        #[arg(short, long, help = "Path to the data file")]
         path: String,
         #[arg(short, long, help = "Text to generate embedding for")]
         text: String,
@@ -31,7 +35,7 @@ enum Commands {
     },
     /// Export embedded data to a Rust constant vector
     Export {
-        #[arg(short, long, help = "Path to the embedded data file")]
+        #[arg(short, long, help = "Path to the data file")]
         path: String,
     },
 }

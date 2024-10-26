@@ -68,11 +68,13 @@ pub async fn query(path: &str, text: &str, model: &str) {
     // generate embeddings
     let request = GenerateEmbeddingsRequest::new(model.to_string(), vec![text.to_string()].into());
     let res = ollama.generate_embeddings(request).await.unwrap();
+    let embedding = res.embeddings[0].clone();
+    println!("Embedding dim: {}", embedding.len());
 
     // write embedding data to file
     let output_path = Path::new(path).with_extension("query.json");
     println!("Writing data to: {:?}", output_path);
-    let embedded_data_bytes = serde_json::to_vec(&res.embeddings[0]).unwrap();
+    let embedded_data_bytes = serde_json::to_vec(&embedding).unwrap();
     fs::write(output_path, embedded_data_bytes)
         .await
         .expect("Unable to write file");
