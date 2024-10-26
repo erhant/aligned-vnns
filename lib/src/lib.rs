@@ -9,7 +9,9 @@ alloy_sol_types::sol! {
     }
 }
 
-/// Create a HNSW index from `samples` and query it with a given `query` vector.
+/// Create a HNSW index from `samples` with `DotProduct` metric, and query it with a given `query` vector.
+///
+/// HNSW and dot-product is chosen as they turn out to be the least demanding for the zkVM.
 ///
 /// Returns the indices of the top `top_k` samples in the index.
 pub fn index_and_query(samples: Vec<Vec<f32>>, query: Vec<f32>, top_k: u32) -> Vec<u32> {
@@ -26,7 +28,7 @@ pub fn index_and_query(samples: Vec<Vec<f32>>, query: Vec<f32>, top_k: u32) -> V
     }
 
     // construct HNSW
-    index.build(Metric::Euclidean).unwrap();
+    index.build(Metric::DotProduct).unwrap();
 
     // make a query
     index.search(&query, top_k as usize)

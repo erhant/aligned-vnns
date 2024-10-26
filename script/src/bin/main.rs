@@ -57,8 +57,8 @@ fn main() {
     let samples_data: Vec<EmbeddedData<Data>> =
         serde_json::from_slice(&samples_bytes).expect("Failed to parse JSON");
     let samples = samples_data
-        .iter()
-        .map(|data| data.embeddings.clone())
+        .into_iter()
+        .map(|data| data.embeddings)
         .collect::<Vec<Vec<f32>>>();
 
     // Read query from file
@@ -73,14 +73,15 @@ fn main() {
         "k must be less than or equal to the number of samples"
     );
 
+    // Pass inputs to zkVM
     let mut stdin = SP1Stdin::new();
     stdin.write(&samples);
     stdin.write(&query);
     stdin.write(&k);
-
     println!("Inputs prepared.");
 
     if args.execute {
+        println!("Executing program.");
         // Execute the program
         let (output, report) = client.execute(PROGRAM_ELF, stdin).run().unwrap();
         println!("Program executed successfully.");
@@ -98,6 +99,7 @@ fn main() {
         // Record the number of cycles executed.
         println!("Number of cycles: {}", report.total_instruction_count());
     } else {
+        println!("Proving program.");
         // setup the program for proving.
         let (pk, vk) = client.setup(PROGRAM_ELF);
 

@@ -1,13 +1,14 @@
 [package]
 version = "0.1.0"
-name = "fibonacci-script"
+name = "zkvdb-script"
 edition = "2021"
-default-run = "fibonacci"
+default-run = "zkvdb"
 
 [[bin]]
-name = "fibonacci"
+name = "zkvdb"
 path = "src/bin/main.rs"
 
+# can probably remove this
 [[bin]]
 name = "evm"
 path = "src/bin/evm.rs"
