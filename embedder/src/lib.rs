@@ -62,15 +62,20 @@ pub async fn index(path: &str, model: &str) {
         .expect("Unable to write file");
 }
 
-pub async fn query(text: &str, model: &str) {
+pub async fn query(path: &str, text: &str, model: &str) {
     let ollama = Ollama::default();
 
     // generate embeddings
     let request = GenerateEmbeddingsRequest::new(model.to_string(), vec![text.to_string()].into());
     let res = ollama.generate_embeddings(request).await.unwrap();
 
-    // print embedding
-    println!("{:?}", res.embeddings[0]);
+    // write embedding data to file
+    let output_path = Path::new(path).with_extension("query.json");
+    println!("Writing data to: {:?}", output_path);
+    let embedded_data_bytes = serde_json::to_vec(&res.embeddings[0]).unwrap();
+    fs::write(output_path, embedded_data_bytes)
+        .await
+        .expect("Unable to write file");
 }
 
 pub async fn export(path: &str) {

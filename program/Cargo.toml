@@ -1,9 +1,9 @@
 [package]
 version = "0.1.0"
-name = "fibonacci-program"
+name = "zkvdb-program"
 edition = "2021"
 
 [dependencies]
 alloy-sol-types = { workspace = true }
 sp1-zkvm = { git = "https://github.com/succinctlabs/sp1.git", tag = "v1.0.1" }
-fibonacci-lib = { path = "../lib" }
+zkvdb-lib = { path = "../lib" }

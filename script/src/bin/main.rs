@@ -12,8 +12,11 @@
 
 use alloy_sol_types::SolType;
 use clap::Parser;
-use fibonacci_lib::PublicValuesStruct;
 use sp1_sdk::{ProverClient, SP1Stdin};
+use std::path::PathBuf;
+
+use zkvdb_embedder::{Data, EmbeddedData};
+use zkvdb_lib::PublicValuesStruct;
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
 pub const PROGRAM_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
@@ -28,30 +31,54 @@ struct Args {
     #[clap(long)]
     prove: bool,
 
-    #[clap(long, default_value = "20")]
-    n: u32,
+    #[clap(short, long, default_value = "../data/foods-smol.json")]
+    path: PathBuf,
+
+    #[clap(short, long, default_value = "2")]
+    top_k: usize,
 }
 
 fn main() {
-    // Setup the logger.
     sp1_sdk::utils::setup_logger();
 
-    // Parse the command line arguments.
     let args = Args::parse();
-
     if args.execute == args.prove {
         eprintln!("Error: You must specify either --execute or --prove");
         std::process::exit(1);
     }
 
-    // Setup the prover client.
+    ///////// Setup the prover client.
     let client = ProverClient::new();
 
-    // Setup the inputs.
-    let mut stdin = SP1Stdin::new();
-    stdin.write(&args.n);
+    ///////// Setup the inputs.
+    // Read samples from file
+    let samples_bytes =
+        std::fs::read(args.path.with_extension("index.json")).expect("Failed to read the file");
+    let samples_data: Vec<EmbeddedData<Data>> =
+        serde_json::from_slice(&samples_bytes).expect("Failed to parse JSON");
+    let samples = samples_data
+        .iter()
+        .map(|data| data.embeddings.clone())
+        .collect::<Vec<Vec<f32>>>();
 
-    println!("n: {}", args.n);
+    // Read query from file
+    let query_bytes =
+        std::fs::read(args.path.with_extension("query.json")).expect("Failed to read the file");
+    let query: Vec<f32> = serde_json::from_slice(&query_bytes).expect("Failed to parse JSON");
+
+    // Read k from args
+    let k: usize = args.top_k;
+    assert!(
+        k <= samples.len(),
+        "k must be less than or equal to the number of samples"
+    );
+
+    let mut stdin = SP1Stdin::new();
+    stdin.write(&samples);
+    stdin.write(&query);
+    stdin.write(&k);
+
+    println!("Inputs prepared.");
 
     if args.execute {
         // Execute the program
@@ -60,14 +87,12 @@ fn main() {
 
         // Read the output.
         let decoded = PublicValuesStruct::abi_decode(output.as_slice(), true).unwrap();
-        let PublicValuesStruct { n, a, b } = decoded;
-        println!("n: {}", n);
-        println!("a: {}", a);
-        println!("b: {}", b);
+        let PublicValuesStruct { k, dest } = decoded;
+        println!("k: {}", k);
+        println!("dest: {:?}", dest);
 
-        let (expected_a, expected_b) = fibonacci_lib::fibonacci(n);
-        assert_eq!(a, expected_a);
-        assert_eq!(b, expected_b);
+        let expected_dest = zkvdb_lib::index_and_query(samples, query, k);
+        assert_eq!(dest, expected_dest);
         println!("Values are correct!");
 
         // Record the number of cycles executed.
@@ -92,10 +117,12 @@ fn main() {
         // create & save proof
         println!("Saving proof.");
         let proof_data = bincode::serialize(&proof).expect("failed to serialize proof");
-        std::fs::write("./sp1.proof", proof_data).expect("failed to save SP1 Proof file");
+        std::fs::write(args.path.with_extension("sp1.proof"), proof_data)
+            .expect("failed to save SP1 Proof file");
 
         // save public input
         println!("Saving public inputs.");
-        std::fs::write("./sp1.pub", proof.public_values).expect("failed to save SP1 public input");
+        std::fs::write(args.path.with_extension("sp1.pub"), proof.public_values)
+            .expect("failed to save SP1 public input");
     }
 }

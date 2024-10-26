@@ -17,15 +17,17 @@ enum Commands {
     Index {
         #[arg(short, long, help = "Path to the data file")]
         path: String,
-        #[arg(short, long, help = "Model to use for embedding generation")]
-        model: Option<String>,
+        #[arg(short, long, help = "Model to use for embedding generation", default_value = DEFAULT_MODEL)]
+        model: String,
     },
     /// Generate embeddings from a text, can be piped to `pbcopy`
     Query {
+        #[arg(short, long, help = "Path to the embedded data file")]
+        path: String,
         #[arg(short, long, help = "Text to generate embedding for")]
         text: String,
-        #[arg(short, long, help = "Model to use for embedding generation")]
-        model: Option<String>,
+        #[arg(short, long, help = "Model to use for embedding generation", default_value = DEFAULT_MODEL)]
+        model: String,
     },
     /// Export embedded data to a Rust constant vector
     Export {
@@ -40,10 +42,10 @@ async fn main() {
 
     match &cli.command {
         Commands::Index { path, model } => {
-            index(path, &model.clone().unwrap_or(DEFAULT_MODEL.to_string())).await;
+            index(path, model).await;
         }
-        Commands::Query { text, model } => {
-            query(text, &model.clone().unwrap_or(DEFAULT_MODEL.to_string())).await;
+        Commands::Query { path, text, model } => {
+            query(path, text, model).await;
         }
         Commands::Export { path } => {
             export(path).await;

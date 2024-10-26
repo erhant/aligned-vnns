@@ -27,7 +27,7 @@ cargo run index -p ./path/to/file.json
 We currently expect the given path to include a JSON array with `{name, description}` fields, both strings. To make a query and get its embedding, you can do:
 
 ```sh
-cargo run query -t "your query here"
+cargo run query -p ./path/to/file.json -t "your query here"
 ```
 
 > [!NOTE]

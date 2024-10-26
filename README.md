@@ -94,8 +94,8 @@ You can send a proof with:
 ```sh
 aligned submit \
 --proving_system SP1 \
---proof ./script/sp1.proof \
---public_input ./script/sp1.pub \
+--proof ./data/foods-smol.sp1.proof \
+--public_input ./data/foods-smol.sp1.pub \
 --vm_program ./elf/riscv32im-succinct-zkvm-elf \
 --batcher_url wss://batcher.alignedlayer.com \
 --keystore_path ./secrets/wallet.json \

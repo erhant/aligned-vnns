@@ -8,23 +8,16 @@
 #![no_main]
 sp1_zkvm::entrypoint!(main);
 
-use alloy_sol_types::SolType;
-use fibonacci_lib::{fibonacci, PublicValuesStruct};
+use alloy_sol_types::SolValue;
+use zkvdb_lib::{index_and_query, PublicValuesStruct};
 
 pub fn main() {
-    // Read an input to the program.
-    //
-    // Behind the scenes, this compiles down to a custom system call which handles reading inputs
-    // from the prover.
-    let n = sp1_zkvm::io::read::<u32>();
+    let samples = sp1_zkvm::io::read::<Vec<Vec<f32>>>();
+    let query = sp1_zkvm::io::read::<Vec<f32>>();
+    let k = sp1_zkvm::io::read::<u32>();
 
-    // Compute the n'th fibonacci number using a function from the workspace lib crate.
-    let (a, b) = fibonacci(n);
+    let dest = index_and_query(samples, query, k);
 
-    // Encode the public values of the program.
-    let bytes = PublicValuesStruct::abi_encode(&PublicValuesStruct { n, a, b });
-
-    // Commit to the public values of the program. The final proof will have a commitment to all the
-    // bytes that were committed to.
+    let bytes = PublicValuesStruct::abi_encode(&PublicValuesStruct { k, dest });
     sp1_zkvm::io::commit_slice(&bytes);
 }
