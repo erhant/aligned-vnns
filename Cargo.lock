@@ -50,6 +50,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "aggregation-program"
+version = "1.1.0"
+dependencies = [
+ "sha2",
+ "sp1-zkvm",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4888,10 +4896,13 @@ dependencies = [
  "lazy_static",
  "libm",
  "once_cell",
+ "p3-baby-bear",
+ "p3-field",
  "rand",
  "serde",
  "sha2",
  "sp1-lib",
+ "sp1-primitives",
 ]
 
 [[package]]

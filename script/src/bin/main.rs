@@ -88,11 +88,10 @@ fn main() {
 
         // Read the output.
         let decoded = PublicValuesStruct::abi_decode(output.as_slice(), true).unwrap();
-        let PublicValuesStruct { k, dest } = decoded;
-        println!("k: {}", k);
-        println!("dest: {:?}", dest);
+        let PublicValuesStruct { idx } = decoded;
+        println!("Closest idx: {}", idx);
 
-        let expected_dest = zkvdb_lib::index_and_query(samples, query, k);
+        let expected_dest = zkvdb_lib::similarity_search(samples, query, k);
         assert_eq!(dest, expected_dest);
         println!("Values are correct!");
 
