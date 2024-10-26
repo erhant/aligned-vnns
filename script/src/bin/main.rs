@@ -16,7 +16,7 @@ use fibonacci_lib::PublicValuesStruct;
 use sp1_sdk::{ProverClient, SP1Stdin};
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
-pub const FIBONACCI_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
+pub const PROGRAM_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
 
 /// The arguments for the command.
 #[derive(Parser, Debug)]
@@ -55,7 +55,7 @@ fn main() {
 
     if args.execute {
         // Execute the program
-        let (output, report) = client.execute(FIBONACCI_ELF, stdin).run().unwrap();
+        let (output, report) = client.execute(PROGRAM_ELF, stdin).run().unwrap();
         println!("Program executed successfully.");
 
         // Read the output.
@@ -73,22 +73,29 @@ fn main() {
         // Record the number of cycles executed.
         println!("Number of cycles: {}", report.total_instruction_count());
     } else {
-        // Setup the program for proving.
-        let (pk, vk) = client.setup(FIBONACCI_ELF);
+        // setup the program for proving.
+        let (pk, vk) = client.setup(PROGRAM_ELF);
 
-        // Generate the proof
+        // generate the proof
         let proof = client
             .prove(&pk, stdin)
+            .compressed()
             .run()
             .expect("failed to generate proof");
 
         println!("Successfully generated proof!");
 
-        // Verify the proof.
+        // verify the proof
         client.verify(&proof, &vk).expect("failed to verify proof");
         println!("Successfully verified proof!");
 
-        // Export proof
-        proof.save("./proof.json").expect("failed to save proof");
+        // create & save proof
+        println!("Saving proof.");
+        let proof_data = bincode::serialize(&proof).expect("failed to serialize proof");
+        std::fs::write("./sp1.proof", proof_data).expect("failed to save SP1 Proof file");
+
+        // save public input
+        println!("Saving public inputs.");
+        std::fs::write("./sp1.pub", proof.public_values).expect("failed to save SP1 public input");
     }
 }
