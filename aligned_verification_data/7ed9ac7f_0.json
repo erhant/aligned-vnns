@@ -1,0 +1,9 @@
+{
+  "batch_merkle_root": "7ed9ac7f9ee3271eb194871bf13945a3eac9e54ae3c64f0af1497fd36f46c98e",
+  "merkle_proof": "3d203d795d2a9595be3a27f60af35d9ea28b915de48db93406e880ea061d203c1b5847e001b3c6e8acaaaeac03f7691fadef7a593d07c2e8534aeb93e5e7cc2191d8a57de663e45c238dc51c7ad6ebfd33fef2a1869bc048ee8b9c2328fc78d8",
+  "program_id_commitment": "4491254d8ff491a773e60e423039e35f008d38eb84bbc51d478839d635622feb",
+  "proof_commitment": "a8287c41e2ea521ec4e017fa8ba28e94f08f8c5325e4e0caaab7a61cb9feb276",
+  "proof_generator_addr": "f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  "pub_input_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+  "verification_data_batch_index": 0
+}

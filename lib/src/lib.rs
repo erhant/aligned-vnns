@@ -5,13 +5,14 @@ alloy_sol_types::sol! {
     }
 }
 
-pub fn compute_best_sample(samples: &[Vec<f32>], query: &[f32]) -> (usize, f32) {
+pub fn compute_best_sample(samples: &[Vec<f32>], query: &[f32]) -> usize {
     samples
         .iter()
         .map(|sample| sample.iter().zip(query).map(|(a, b)| a * b).sum::<f32>())
         .enumerate()
         .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
         .unwrap()
+        .0
 }
 
 pub fn iterative_similarity_search(
@@ -27,10 +28,9 @@ pub fn iterative_similarity_search(
         }
         current_samples = best_samples
             .iter()
-            .map(|&(idx, _)| current_samples[idx].clone())
+            .map(|&idx| current_samples[idx].clone())
             .collect::<Vec<_>>();
     }
 
-    let (best_idx, _) = compute_best_sample(&current_samples, &query);
-    best_idx
+    compute_best_sample(&current_samples, &query)
 }

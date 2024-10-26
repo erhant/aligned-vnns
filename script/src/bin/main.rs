@@ -12,7 +12,9 @@
 
 use alloy_sol_types::SolType;
 use clap::Parser;
-use sp1_sdk::{ProverClient, SP1Stdin};
+use sp1_sdk::{
+    HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey,
+};
 use std::path::PathBuf;
 
 use zkvdb_embedder::{Data, EmbeddedData};
@@ -20,6 +22,14 @@ use zkvdb_lib::PublicValuesStruct;
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
 pub const PROGRAM_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
+
+/// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM aggregator.
+pub const AGGREGATOR_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-aggregator-elf");
+
+struct AggregationInput {
+    pub proof: SP1ProofWithPublicValues,
+    pub vk: SP1VerifyingKey,
+}
 
 /// The arguments for the command.
 #[derive(Parser, Debug)]
@@ -33,19 +43,27 @@ struct Args {
 
     #[clap(short, long, default_value = "../data/foods-smol.json")]
     path: PathBuf,
+}
 
-    #[clap(short, long, default_value = "2")]
-    top_k: usize,
+enum ExecutionType {
+    Execute,
+    Prove,
 }
 
 fn main() {
     sp1_sdk::utils::setup_logger();
-
     let args = Args::parse();
+
+    ////////// Parse execution type.
     if args.execute == args.prove {
         eprintln!("Error: You must specify either --execute or --prove");
         std::process::exit(1);
     }
+    let exec_type = if args.execute {
+        ExecutionType::Execute
+    } else {
+        ExecutionType::Prove
+    };
 
     ///////// Setup the prover client.
     let client = ProverClient::new();
@@ -66,64 +84,115 @@ fn main() {
         std::fs::read(args.path.with_extension("query.json")).expect("Failed to read the file");
     let query: Vec<f32> = serde_json::from_slice(&query_bytes).expect("Failed to parse JSON");
 
-    // Read k from args
-    let k: usize = args.top_k;
-    assert!(
-        k <= samples.len(),
-        "k must be less than or equal to the number of samples"
-    );
+    match exec_type {
+        ExecutionType::Execute => {
+            // pass everything at once for execution
+            let mut stdin = SP1Stdin::new();
+            stdin.write(&samples);
+            stdin.write(&query);
 
-    // Pass inputs to zkVM
-    let mut stdin = SP1Stdin::new();
-    stdin.write(&samples);
-    stdin.write(&query);
-    stdin.write(&k);
-    println!("Inputs prepared.");
+            println!("Executing program.");
+            // Execute the program
 
-    if args.execute {
-        println!("Executing program.");
-        // Execute the program
-        let (output, report) = client.execute(PROGRAM_ELF, stdin).run().unwrap();
-        println!("Program executed successfully.");
+            let (output, report) = client.execute(PROGRAM_ELF, stdin).run().unwrap();
+            println!("Program executed successfully.");
 
-        // Read the output.
-        let decoded = PublicValuesStruct::abi_decode(output.as_slice(), true).unwrap();
-        let PublicValuesStruct { idx } = decoded;
-        println!("Closest idx: {}", idx);
+            // Read the output.
+            let decoded = PublicValuesStruct::abi_decode(output.as_slice(), true).unwrap();
+            let PublicValuesStruct { idx } = decoded;
+            println!("Closest idx: {}", idx);
 
-        let expected_dest = zkvdb_lib::similarity_search(samples, query, k);
-        assert_eq!(dest, expected_dest);
-        println!("Values are correct!");
+            let expected_idx = zkvdb_lib::compute_best_sample(&samples, &query);
+            assert_eq!(idx, expected_idx as u32);
+            println!("Values are correct!");
 
-        // Record the number of cycles executed.
-        println!("Number of cycles: {}", report.total_instruction_count());
-    } else {
-        println!("Proving program.");
-        // setup the program for proving.
-        let (pk, vk) = client.setup(PROGRAM_ELF);
+            // Record the number of cycles executed.
+            println!("Number of cycles: {}", report.total_instruction_count());
+        }
+        ExecutionType::Prove => {
+            const CHUNK_SIZE: usize = 3;
 
-        // generate the proof
-        let proof = client
-            .prove(&pk, stdin)
-            .compressed()
-            .run()
-            .expect("failed to generate proof");
+            // setup the program for proving.
+            let (pk, vk) = client.setup(PROGRAM_ELF);
+            let (agg_pk, agg_vk) = client.setup(AGGREGATOR_ELF);
 
-        println!("Successfully generated proof!");
+            // generate similarity proofs
+            println!("Proving all chunks (chunk size {})", CHUNK_SIZE);
+            let mut proofs = Vec::new();
+            for chunk in samples.chunks(CHUNK_SIZE) {
+                println!("Generating proof for chunk.");
+                let mut stdin = SP1Stdin::new();
+                stdin.write(&chunk);
+                stdin.write(&query);
 
-        // verify the proof
-        client.verify(&proof, &vk).expect("failed to verify proof");
-        println!("Successfully verified proof!");
+                let proof = client
+                    .prove(&pk, stdin)
+                    .compressed()
+                    .run()
+                    .expect("failed to generate proof");
+                proofs.push(proof);
+            }
 
-        // create & save proof
-        println!("Saving proof.");
-        let proof_data = bincode::serialize(&proof).expect("failed to serialize proof");
-        std::fs::write(args.path.with_extension("sp1.proof"), proof_data)
-            .expect("failed to save SP1 Proof file");
+            // aggregate all proofs
+            println!("Aggregating all {} proofs.", proofs.len());
+            let mut stdin = SP1Stdin::new();
+            let inputs: Vec<AggregationInput> = proofs
+                .into_iter()
+                .map(|proof| AggregationInput {
+                    proof,
+                    vk: vk.clone(),
+                })
+                .collect();
 
-        // save public input
-        println!("Saving public inputs.");
-        std::fs::write(args.path.with_extension("sp1.pub"), proof.public_values)
-            .expect("failed to save SP1 public input");
+            // Write the verification keys.
+            let vkeys = inputs
+                .iter()
+                .map(|input| input.vk.hash_u32())
+                .collect::<Vec<_>>();
+            stdin.write::<Vec<[u32; 8]>>(&vkeys);
+
+            // Write the public values.
+            let public_values = inputs
+                .iter()
+                .map(|input| input.proof.public_values.to_vec())
+                .collect::<Vec<_>>();
+            stdin.write::<Vec<Vec<u8>>>(&public_values);
+
+            // Write the proofs.
+            //
+            // Note: this data will not actually be read by the aggregation program, instead it will be
+            // witnessed by the prover during the recursive aggregation process inside SP1 itself.
+            for input in inputs {
+                let SP1Proof::Compressed(proof) = input.proof.proof else {
+                    panic!("expected compressed proof");
+                };
+                stdin.write_proof(proof, input.vk.vk);
+            }
+
+            println!("Proving the aggregated proof.");
+            let proof = client
+                .prove(&agg_pk, stdin)
+                .compressed()
+                .run()
+                .expect("failed to generate aggregation proof");
+            println!("Successfully generated aggregation proof!");
+
+            // verify the proof
+            client
+                .verify(&proof, &agg_vk)
+                .expect("failed to verify proof");
+            println!("Successfully verified aggregation proof!");
+
+            // create & save proof
+            println!("Saving proof.");
+            let proof_data = bincode::serialize(&proof).expect("failed to serialize proof");
+            std::fs::write(args.path.with_extension("sp1.proof"), proof_data)
+                .expect("failed to save SP1 Proof file");
+
+            // save public input
+            println!("Saving public inputs.");
+            std::fs::write(args.path.with_extension("sp1.pub"), proof.public_values)
+                .expect("failed to save SP1 public input");
+        }
     }
 }

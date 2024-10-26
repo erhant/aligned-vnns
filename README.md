@@ -102,3 +102,17 @@ aligned submit \
 --network holesky \
 --rpc_url https://ethereum-holesky-rpc.publicnode.com
 ```
+
+### Sending an Aggregated Proof
+
+```sh
+aligned submit \
+--proving_system SP1 \
+--proof ./data/foods-med.sp1.proof \
+--public_input ./data/foods-med.sp1.pub \
+--vm_program ./elf/riscv32im-succinct-aggregator-elf \
+--batcher_url wss://batcher.alignedlayer.com \
+--keystore_path ./secrets/wallet.json \
+--network holesky \
+--rpc_url https://ethereum-holesky-rpc.publicnode.com
+```

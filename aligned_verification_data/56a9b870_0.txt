@@ -1,5 +1,0 @@
-[2024-10-26T20:01:25Z INFO  aligned] Submitting proofs to the Aligned batcher...
-[2024-10-26T20:02:18Z INFO  aligned_sdk::sdk] Batch inclusion data written into ./aligned_verification_data/56a9b870_0.cbor
-[2024-10-26T20:02:18Z INFO  aligned_sdk::sdk] Batch inclusion data written into ./aligned_verification_data/56a9b870_0.json
-[2024-10-26T20:02:18Z INFO  aligned] Proofs submitted to aligned. See the batch in the explorer:
-[2024-10-26T20:02:18Z INFO  aligned] https://explorer.alignedlayer.com/batches/0x56a9b8708e2e236f394bcae84706c0a97ff13b83bc920917155b3b73c311c7e4
