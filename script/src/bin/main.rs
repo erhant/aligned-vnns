@@ -158,11 +158,13 @@ fn main() {
                             .try_into()
                             .expect("failed to read u32 from output"),
                     );
-                    println!("Closest idx: {}", idx);
+                    println!("Closest index: {}", idx);
                     let query_commitment = &proof.public_values.as_slice()[4..36];
                     println!("Query Commitment: {}", hex::encode(query_commitment));
                     let samples_commitment = &proof.public_values.as_slice()[36..68];
                     println!("Samples Commitment: {}", hex::encode(samples_commitment));
+                    let output_commitment = &proof.public_values.as_slice()[68..100];
+                    println!("Output Commitment: {}", hex::encode(output_commitment));
 
                     best_samples.push(idx);
 
@@ -189,21 +191,12 @@ fn main() {
                     .run()
                     .expect("failed to generate proof");
 
-                let idx = u32::from_ne_bytes(
-                    proof.public_values.as_slice()[0..4]
-                        .try_into()
-                        .expect("failed to read u32 from output"),
-                );
-                println!("Closest idx: {}", idx);
-
-                let result_bytes = current_samples[idx as usize]
-                    .iter()
-                    .flat_map(|f| f.to_ne_bytes())
-                    .collect::<Vec<_>>();
-                println!(
-                    "Result Commitment: {}",
-                    hex::encode(Sha256::digest(&result_bytes))
-                );
+                let query_commitment = &proof.public_values.as_slice()[4..36];
+                println!("Query Commitment: {}", hex::encode(query_commitment));
+                let samples_commitment = &proof.public_values.as_slice()[36..68];
+                println!("Samples Commitment: {}", hex::encode(samples_commitment));
+                let output_commitment = &proof.public_values.as_slice()[68..100];
+                println!("Output Commitment: {}", hex::encode(output_commitment));
 
                 proofs.push(proof);
             }

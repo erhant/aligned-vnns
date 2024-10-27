@@ -13,6 +13,13 @@ pub fn main() {
     // compute similarity and return index
     let idx = compute_best_sample(&samples, &query);
 
+    // commit to output
+    let output_bytes = samples[idx as usize]
+        .iter()
+        .flat_map(|f| f.to_ne_bytes())
+        .collect::<Vec<_>>();
+    let output_commit = Sha256::digest(&output_bytes);
+
     // commit to query
     let query_bytes = query
         .into_iter()
@@ -31,4 +38,5 @@ pub fn main() {
     sp1_zkvm::io::commit_slice(&(idx as u32).to_ne_bytes()); // 8 byte (u32)
     sp1_zkvm::io::commit_slice(&query_commit); // 32 byte
     sp1_zkvm::io::commit_slice(&samples_commit); // 32 byte
+    sp1_zkvm::io::commit_slice(&output_commit); // 32 byte
 }
