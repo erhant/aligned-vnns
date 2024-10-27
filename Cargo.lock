@@ -6080,7 +6080,7 @@ dependencies = [
 name = "zkvdb-program"
 version = "0.1.0"
 dependencies = [
- "alloy-sol-types",
+ "sha2",
  "sp1-zkvm",
  "zkvdb-lib",
 ]

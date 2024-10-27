@@ -10,7 +10,6 @@
 //! RUST_LOG=info cargo run --release -- --prove
 //! ```
 
-use alloy_sol_types::SolType;
 use clap::Parser;
 use sp1_sdk::{
     HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey,
@@ -18,7 +17,6 @@ use sp1_sdk::{
 use std::path::PathBuf;
 
 use zkvdb_embedder::{Data, EmbeddedData};
-use zkvdb_lib::PublicValuesStruct;
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
 pub const PROGRAM_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
@@ -98,9 +96,18 @@ fn main() {
             println!("Program executed successfully.");
 
             // Read the output.
-            let decoded = PublicValuesStruct::abi_decode(output.as_slice(), true).unwrap();
-            let PublicValuesStruct { idx } = decoded;
+            let idx = u32::from_ne_bytes(
+                output.as_slice()[0..4]
+                    .try_into()
+                    .expect("Failed to read u32 from output"),
+            );
             println!("Closest idx: {}", idx);
+
+            // Read the commitments
+            let query_commitment = &output.as_slice()[4..36];
+            println!("Query Commitment: {:?}", query_commitment.len());
+            let samples_commitment = &output.as_slice()[36..68];
+            println!("Samples Commitment: {:?}", samples_commitment.len());
 
             let expected_idx = zkvdb_lib::compute_best_sample(&samples, &query);
             assert_eq!(idx, expected_idx as u32);

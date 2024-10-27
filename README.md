@@ -2,6 +2,8 @@
 
 A verifiable HNSW query program, powered by [SP1](https://github.com/succinctlabs/sp1).
 
+> Built for Aligned Builders Hackathon, see [judging criteria](https://mirror.xyz/0x7794D1c55568270A81D8Bf39e1bcE96BEaC10901/JnG4agqhW0oiskZJgcFdi9SLKvqkTBrbXkuk1nT6lxk).
+
 ## Installation
 
 You need the following:
