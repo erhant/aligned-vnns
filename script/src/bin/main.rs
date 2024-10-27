@@ -11,7 +11,6 @@
 //! ```
 
 use clap::Parser;
-use sha2::{Digest, Sha256};
 use sp1_sdk::{
     HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey,
 };
@@ -100,21 +99,14 @@ fn main() {
                     .try_into()
                     .expect("failed to read u32 from output"),
             );
-            println!("Closest idx: {}", idx);
 
             // Read the commitments
             let query_commitment = &output.as_slice()[4..36];
             println!("Query Commitment: {}", hex::encode(query_commitment));
             let samples_commitment = &output.as_slice()[36..68];
             println!("Samples Commitment: {}", hex::encode(samples_commitment));
-            let result_bytes = samples[idx as usize]
-                .iter()
-                .flat_map(|f| f.to_ne_bytes())
-                .collect::<Vec<_>>();
-            println!(
-                "Result Commitment: {}",
-                hex::encode(Sha256::digest(&result_bytes))
-            );
+            let output_commitment = &output.as_slice()[68..100];
+            println!("Output Commitment: {}", hex::encode(output_commitment));
 
             let expected_idx = zkvdb_lib::compute_best_sample(&samples, &query);
             assert_eq!(idx, expected_idx as u32);
