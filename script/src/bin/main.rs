@@ -11,11 +11,11 @@
 //! ```
 
 use clap::Parser;
+use sha2::{Digest, Sha256};
 use sp1_sdk::{
     HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey,
 };
 use std::path::PathBuf;
-
 use zkvdb_embedder::{Data, EmbeddedData};
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
@@ -104,9 +104,17 @@ fn main() {
 
             // Read the commitments
             let query_commitment = &output.as_slice()[4..36];
-            println!("Query Commitment: {:?}", query_commitment.len());
+            println!("Query Commitment: {}", hex::encode(query_commitment));
             let samples_commitment = &output.as_slice()[36..68];
-            println!("Samples Commitment: {:?}", samples_commitment.len());
+            println!("Samples Commitment: {}", hex::encode(samples_commitment));
+            let result_bytes = samples[idx as usize]
+                .iter()
+                .flat_map(|f| f.to_ne_bytes())
+                .collect::<Vec<_>>();
+            println!(
+                "Result Commitment: {}",
+                hex::encode(Sha256::digest(&result_bytes))
+            );
 
             let expected_idx = zkvdb_lib::compute_best_sample(&samples, &query);
             assert_eq!(idx, expected_idx as u32);
@@ -150,6 +158,12 @@ fn main() {
                             .try_into()
                             .expect("failed to read u32 from output"),
                     );
+                    println!("Closest idx: {}", idx);
+                    let query_commitment = &proof.public_values.as_slice()[4..36];
+                    println!("Query Commitment: {}", hex::encode(query_commitment));
+                    let samples_commitment = &proof.public_values.as_slice()[36..68];
+                    println!("Samples Commitment: {}", hex::encode(samples_commitment));
+
                     best_samples.push(idx);
 
                     // store proof for aggregation
@@ -174,6 +188,23 @@ fn main() {
                     .compressed()
                     .run()
                     .expect("failed to generate proof");
+
+                let idx = u32::from_ne_bytes(
+                    proof.public_values.as_slice()[0..4]
+                        .try_into()
+                        .expect("failed to read u32 from output"),
+                );
+                println!("Closest idx: {}", idx);
+
+                let result_bytes = current_samples[idx as usize]
+                    .iter()
+                    .flat_map(|f| f.to_ne_bytes())
+                    .collect::<Vec<_>>();
+                println!(
+                    "Result Commitment: {}",
+                    hex::encode(Sha256::digest(&result_bytes))
+                );
+
                 proofs.push(proof);
             }
 

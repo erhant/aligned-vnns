@@ -1,10 +1,3 @@
-// alloy_sol_types::sol! {
-//     /// The public values encoded as a struct that can be easily deserialized inside Solidity.
-//     struct PublicValuesStruct {
-//         uint32 idx; // index of the most similar sample
-//     }
-// }
-
 pub fn compute_best_sample(samples: &[Vec<f32>], query: &[f32]) -> usize {
     samples
         .iter()

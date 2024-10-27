@@ -1,5 +1,6 @@
 use ollama_rs::{generation::embeddings::request::GenerateEmbeddingsRequest, Ollama};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::path::Path;
 use tokio::fs;
 
@@ -11,8 +12,12 @@ pub struct Data {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EmbeddedData<T> {
+    /// Raw data object.
     pub data: T,
+    /// Embedding vector.
     pub embeddings: Vec<f32>,
+    /// Hex encoded SHA256 digest.
+    pub hash: String,
 }
 
 impl std::fmt::Display for Data {
@@ -47,7 +52,18 @@ pub async fn index(path: &str, model: &str) {
     let embedded_data = data
         .into_iter()
         .zip(res.embeddings)
-        .map(|(data, embeddings)| EmbeddedData { data, embeddings })
+        .map(|(data, embeddings)| {
+            let embeddings_bytes = embeddings
+                .iter()
+                .flat_map(|f| f.to_ne_bytes())
+                .collect::<Vec<_>>();
+
+            EmbeddedData {
+                data,
+                embeddings,
+                hash: hex::encode(Sha256::digest(&embeddings_bytes)),
+            }
+        })
         .collect::<Vec<EmbeddedData<Data>>>();
 
     // write embedded data to file
