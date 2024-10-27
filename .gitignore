@@ -21,6 +21,6 @@ pgo-data.profdata
 # Nonces
 nonce_*
 
-# Proofs and publics
-*.sp1.proof
-*.sp1.pub
+# Proofs and public inputs
+*.proof
+*.pub

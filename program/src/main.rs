@@ -28,7 +28,7 @@ pub fn main() {
         .collect::<Vec<_>>();
     let samples_commit = Sha256::digest(&samples_bytes);
 
-    sp1_zkvm::io::commit_slice(&idx.to_ne_bytes()); // 8 byte (u32)
+    sp1_zkvm::io::commit_slice(&(idx as u32).to_ne_bytes()); // 8 byte (u32)
     sp1_zkvm::io::commit_slice(&query_commit); // 32 byte
     sp1_zkvm::io::commit_slice(&samples_commit); // 32 byte
 }

@@ -6089,7 +6089,6 @@ dependencies = [
 name = "zkvdb-script"
 version = "0.1.0"
 dependencies = [
- "alloy-sol-types",
  "bincode",
  "clap",
  "hex",

@@ -69,9 +69,9 @@ fn main() {
     ///////// Setup the inputs.
     // Read samples from file
     let samples_bytes =
-        std::fs::read(args.path.with_extension("index.json")).expect("Failed to read the file");
+        std::fs::read(args.path.with_extension("index.json")).expect("failed to read the file");
     let samples_data: Vec<EmbeddedData<Data>> =
-        serde_json::from_slice(&samples_bytes).expect("Failed to parse JSON");
+        serde_json::from_slice(&samples_bytes).expect("failed to parse JSON");
     let samples = samples_data
         .into_iter()
         .map(|data| data.embeddings)
@@ -79,8 +79,8 @@ fn main() {
 
     // Read query from file
     let query_bytes =
-        std::fs::read(args.path.with_extension("query.json")).expect("Failed to read the file");
-    let query: Vec<f32> = serde_json::from_slice(&query_bytes).expect("Failed to parse JSON");
+        std::fs::read(args.path.with_extension("query.json")).expect("failed to read the file");
+    let query: Vec<f32> = serde_json::from_slice(&query_bytes).expect("failed to parse JSON");
 
     match exec_type {
         ExecutionType::Execute => {
@@ -89,9 +89,8 @@ fn main() {
             stdin.write(&samples);
             stdin.write(&query);
 
-            println!("Executing program.");
             // Execute the program
-
+            println!("Executing program.");
             let (output, report) = client.execute(PROGRAM_ELF, stdin).run().unwrap();
             println!("Program executed successfully.");
 
@@ -99,7 +98,7 @@ fn main() {
             let idx = u32::from_ne_bytes(
                 output.as_slice()[0..4]
                     .try_into()
-                    .expect("Failed to read u32 from output"),
+                    .expect("failed to read u32 from output"),
             );
             println!("Closest idx: {}", idx);
 
@@ -126,12 +125,50 @@ fn main() {
             // generate similarity proofs
             println!("Proving all chunks (chunk size {})", CHUNK_SIZE);
             let mut proofs = Vec::new();
-            for chunk in samples.chunks(CHUNK_SIZE) {
-                println!("Generating proof for chunk.");
-                let mut stdin = SP1Stdin::new();
-                stdin.write(&chunk);
-                stdin.write(&query);
+            let mut current_samples = samples;
+            while current_samples.len() > CHUNK_SIZE {
+                // we will collect the best samples for this iteration here
+                let mut best_samples = Vec::new();
 
+                // process each chunk within the current samples
+                for (chunk_idx, chunk) in current_samples.chunks(CHUNK_SIZE).enumerate() {
+                    println!("Generating proof for chunk {}.", chunk_idx);
+                    let mut stdin = SP1Stdin::new();
+                    stdin.write(&chunk);
+                    stdin.write(&query);
+
+                    // create proof
+                    let proof = client
+                        .prove(&pk, stdin)
+                        .compressed()
+                        .run()
+                        .expect("failed to generate proof");
+
+                    // find idx from the public output and choose the best sample
+                    let idx = u32::from_ne_bytes(
+                        proof.public_values.as_slice()[0..4]
+                            .try_into()
+                            .expect("failed to read u32 from output"),
+                    );
+                    best_samples.push(idx);
+
+                    // store proof for aggregation
+                    proofs.push(proof);
+                }
+
+                // update samples with the results of each chunk
+                current_samples = best_samples
+                    .iter()
+                    .map(|&idx| current_samples[idx as usize].clone())
+                    .collect::<Vec<_>>();
+            }
+
+            // all sub-chunks are processed, do one more final proof
+            {
+                println!("Generating proof for final samples.");
+                let mut stdin = SP1Stdin::new();
+                stdin.write(&current_samples);
+                stdin.write(&query);
                 let proof = client
                     .prove(&pk, stdin)
                     .compressed()
@@ -140,10 +177,10 @@ fn main() {
                 proofs.push(proof);
             }
 
-            // aggregate all proofs
+            // create aggregation proofs
             println!("Aggregating all {} proofs.", proofs.len());
             let mut stdin = SP1Stdin::new();
-            let inputs: Vec<AggregationInput> = proofs
+            let agg_inputs: Vec<AggregationInput> = proofs
                 .into_iter()
                 .map(|proof| AggregationInput {
                     proof,
@@ -151,25 +188,25 @@ fn main() {
                 })
                 .collect();
 
-            // Write the verification keys.
-            let vkeys = inputs
+            // write the verification keys to aggregator
+            let vkeys_bytes = agg_inputs
                 .iter()
                 .map(|input| input.vk.hash_u32())
                 .collect::<Vec<_>>();
-            stdin.write::<Vec<[u32; 8]>>(&vkeys);
+            stdin.write::<Vec<[u32; 8]>>(&vkeys_bytes);
 
-            // Write the public values.
-            let public_values = inputs
+            // write the public values to aggregator
+            let public_values_bytes = agg_inputs
                 .iter()
                 .map(|input| input.proof.public_values.to_vec())
                 .collect::<Vec<_>>();
-            stdin.write::<Vec<Vec<u8>>>(&public_values);
+            stdin.write::<Vec<Vec<u8>>>(&public_values_bytes);
 
-            // Write the proofs.
+            // write the proofs
             //
             // Note: this data will not actually be read by the aggregation program, instead it will be
             // witnessed by the prover during the recursive aggregation process inside SP1 itself.
-            for input in inputs {
+            for input in agg_inputs {
                 let SP1Proof::Compressed(proof) = input.proof.proof else {
                     panic!("expected compressed proof");
                 };
@@ -193,12 +230,12 @@ fn main() {
             // create & save proof
             println!("Saving proof.");
             let proof_data = bincode::serialize(&proof).expect("failed to serialize proof");
-            std::fs::write(args.path.with_extension("sp1.proof"), proof_data)
+            std::fs::write(args.path.with_extension(".proof"), proof_data)
                 .expect("failed to save SP1 Proof file");
 
             // save public input
             println!("Saving public inputs.");
-            std::fs::write(args.path.with_extension("sp1.pub"), proof.public_values)
+            std::fs::write(args.path.with_extension(".pub"), proof.public_values)
                 .expect("failed to save SP1 public input");
         }
     }

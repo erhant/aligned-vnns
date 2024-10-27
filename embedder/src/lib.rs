@@ -32,10 +32,7 @@ pub async fn index(path: &str, model: &str) {
     assert!(!data.is_empty(), "no data found");
 
     // convert to texts
-    let texts = data
-        .iter()
-        .map(|food| food.to_string())
-        .collect::<Vec<String>>();
+    let texts = data.iter().map(|d| d.to_string()).collect::<Vec<String>>();
 
     // generate embeddings
     println!("Generating embeddings with: {}", model);
