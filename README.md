@@ -1,16 +1,13 @@
-# Zero-Knowledge VectorDB
+# Verifiable Nearest Neighbor Search
 
-A verifiable nearest-neighbor search program, powered by [SP1](https://github.com/succinctlabs/sp1).
+A **verifiable nearest-neighbor search** program, powered by [SP1](https://github.com/succinctlabs/sp1).
 
-> Built for [Aligned Builders Hackathon](https://devfolio.co/alignedhackathon/).
->
-> - [Project TODO: !!!](/)
-> - [Judging](https://mirror.xyz/0x7794D1c55568270A81D8Bf39e1bcE96BEaC10901/JnG4agqhW0oiskZJgcFdi9SLKvqkTBrbXkuk1nT6lxk).
-> - [Presentation TODO: !!!](/)
+This project was built for [Aligned Builders Hackathon](https://devfolio.co/alignedhackathon/):
 
-> [!NOTE]
->
-> TODO: write disclaimer about demo here
+- [Project TODO: !!!](/)
+- [Presentation](./vnns-presentation.pdf)
+
+The requested information as per the [judging criteria](https://mirror.xyz/0x7794D1c55568270A81D8Bf39e1bcE96BEaC10901/JnG4agqhW0oiskZJgcFdi9SLKvqkTBrbXkuk1nT6lxk) has been given within the project link above.
 
 ## Setup
 
@@ -156,3 +153,7 @@ To send the aggregated proof only, you can use:
 > [!NOTE]
 >
 > For each proof, it will ask for your keystore password.
+
+## License
+
+The project is MIT licensed as per SP1 project template.
