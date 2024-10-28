@@ -1,7 +1,19 @@
+/// Compute the best sample from a list of samples given a query.
+///
+/// Uses the dot product to compute the similarity between the samples and the query.
+/// Assumes that the samples and the query have the same length, and the input values are
+/// scale-invariant and within the range [-1, 1].
 pub fn compute_best_sample(samples: &[Vec<f32>], query: &[f32]) -> usize {
     samples
         .iter()
-        .map(|sample| sample.iter().zip(query).map(|(a, b)| a * b).sum::<f32>())
+        .map(|sample| {
+            sample
+                .iter()
+                .zip(query)
+                .map(|(a, b)| (a - b).powi(2))
+                .sum::<f32>()
+                .sqrt()
+        })
         .enumerate()
         .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
         .unwrap()
@@ -12,7 +24,7 @@ pub fn iterative_similarity_search(
     samples: Vec<Vec<f32>>,
     query: Vec<f32>,
     batch_size: usize,
-) -> usize {
+) -> (usize, Vec<f32>) {
     let mut current_samples = samples;
     while current_samples.len() > batch_size {
         let mut best_samples = Vec::new();
@@ -25,7 +37,10 @@ pub fn iterative_similarity_search(
             .collect::<Vec<_>>();
     }
 
-    compute_best_sample(&current_samples, &query)
+    let idx = compute_best_sample(&current_samples, &query);
+    let result = current_samples[idx].clone();
+
+    (idx, result)
 }
 
 #[cfg(test)]
@@ -56,6 +71,9 @@ mod tests {
             vec![0.16, 0.17, 0.18],
         ];
         let query = vec![0.99, 0.99, 0.99];
-        assert_eq!(iterative_similarity_search(samples, query, 2), 2);
+        assert_eq!(
+            iterative_similarity_search(samples, query, 2).1,
+            vec![0.4, 0.5, 0.6]
+        );
     }
 }
