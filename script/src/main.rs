@@ -15,13 +15,10 @@ use sp1_sdk::{
     HashableKey, ProverClient, SP1Proof, SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey,
 };
 use std::path::PathBuf;
-use zkvdb_embedder::{Data, EmbeddedData};
+use vnns_embedder::{Data, EmbeddedData};
 
-/// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
-pub const PROGRAM_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
-
-/// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM aggregator.
-pub const AGGREGATOR_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-aggregator-elf");
+pub const PROGRAM_ELF: &[u8] = include_bytes!("../../elf/riscv32im-succinct-vnns-elf");
+pub const AGGREGATOR_ELF: &[u8] = include_bytes!("../../elf/riscv32im-succinct-aggregator-elf");
 
 struct AggregationInput {
     pub proof: SP1ProofWithPublicValues,
@@ -32,12 +29,19 @@ struct AggregationInput {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
+    /// Simulate the execution of the program, without a proof.
     #[clap(long)]
     execute: bool,
 
+    /// Generate batches of proofs.
     #[clap(long)]
     prove: bool,
 
+    /// Aggregate the proofs to create only one final proof.
+    #[clap(long)]
+    aggregate: bool,
+
+    /// Path to the data file.
     #[clap(short, long, default_value = "../data/foods-smol.json")]
     path: PathBuf,
 }
@@ -108,7 +112,7 @@ fn main() {
             let output_commitment = &output.as_slice()[68..100];
             println!("Output Commitment: {}", hex::encode(output_commitment));
 
-            let expected_idx = zkvdb_lib::compute_best_sample(&samples, &query);
+            let expected_idx = vnns_lib::compute_best_sample(&samples, &query);
             assert_eq!(idx, expected_idx as u32);
             println!("Values are correct!");
 
@@ -190,69 +194,88 @@ fn main() {
                 let output_commitment = &proof.public_values.as_slice()[68..100];
                 println!("Output Commitment: {}", hex::encode(output_commitment));
 
+                // verify the proof to be sure
+                client.verify(&proof, &vk).expect("failed to verify proof");
+
                 proofs.push(proof);
             }
 
-            // create aggregation proofs
-            println!("Aggregating all {} proofs.", proofs.len());
-            let mut stdin = SP1Stdin::new();
-            let agg_inputs: Vec<AggregationInput> = proofs
-                .into_iter()
-                .map(|proof| AggregationInput {
-                    proof,
-                    vk: vk.clone(),
-                })
-                .collect();
+            // save all proofs & publics to file
+            for (i, proof) in proofs.iter().enumerate() {
+                let proof_data = bincode::serialize(proof).expect("failed to serialize proof");
+                std::fs::write(args.path.with_extension(format!("{}.proof", i)), proof_data)
+                    .expect("failed to save SP1 proof");
 
-            // write the verification keys to aggregator
-            let vkeys_bytes = agg_inputs
-                .iter()
-                .map(|input| input.vk.hash_u32())
-                .collect::<Vec<_>>();
-            stdin.write::<Vec<[u32; 8]>>(&vkeys_bytes);
-
-            // write the public values to aggregator
-            let public_values_bytes = agg_inputs
-                .iter()
-                .map(|input| input.proof.public_values.to_vec())
-                .collect::<Vec<_>>();
-            stdin.write::<Vec<Vec<u8>>>(&public_values_bytes);
-
-            // write the proofs
-            //
-            // Note: this data will not actually be read by the aggregation program, instead it will be
-            // witnessed by the prover during the recursive aggregation process inside SP1 itself.
-            for input in agg_inputs {
-                let SP1Proof::Compressed(proof) = input.proof.proof else {
-                    panic!("expected compressed proof");
-                };
-                stdin.write_proof(proof, input.vk.vk);
+                println!("Saving public inputs.");
+                std::fs::write(
+                    args.path.with_extension(format!("{}.pub", i)),
+                    proof.public_values.clone(),
+                )
+                .expect("failed to save SP1 public input");
             }
 
-            println!("Proving the aggregated proof.");
-            let proof = client
-                .prove(&agg_pk, stdin)
-                .compressed()
-                .run()
-                .expect("failed to generate aggregation proof");
-            println!("Successfully generated aggregation proof!");
+            // if enabled, aggregate into one final proof
+            if args.aggregate {
+                println!("Aggregating all {} proofs.", proofs.len());
+                let mut stdin = SP1Stdin::new();
+                let agg_inputs: Vec<AggregationInput> = proofs
+                    .into_iter()
+                    .map(|proof| AggregationInput {
+                        proof,
+                        vk: vk.clone(),
+                    })
+                    .collect();
 
-            // verify the proof
-            client
-                .verify(&proof, &agg_vk)
-                .expect("failed to verify proof");
-            println!("Successfully verified aggregation proof!");
+                // write the verification keys to aggregator
+                let vkeys_bytes = agg_inputs
+                    .iter()
+                    .map(|input| input.vk.hash_u32())
+                    .collect::<Vec<_>>();
+                stdin.write::<Vec<[u32; 8]>>(&vkeys_bytes);
 
-            // create & save proof
-            println!("Saving proof.");
-            let proof_data = bincode::serialize(&proof).expect("failed to serialize proof");
-            std::fs::write(args.path.with_extension(".proof"), proof_data)
-                .expect("failed to save SP1 Proof file");
+                // write the public values to aggregator
+                let public_values_bytes = agg_inputs
+                    .iter()
+                    .map(|input| input.proof.public_values.to_vec())
+                    .collect::<Vec<_>>();
+                stdin.write::<Vec<Vec<u8>>>(&public_values_bytes);
 
-            // save public input
-            println!("Saving public inputs.");
-            std::fs::write(args.path.with_extension(".pub"), proof.public_values)
-                .expect("failed to save SP1 public input");
+                // write the proofs
+                //
+                // Note: this data will not actually be read by the aggregation program, instead it will be
+                // witnessed by the prover during the recursive aggregation process inside SP1 itself.
+                for input in agg_inputs {
+                    let SP1Proof::Compressed(proof) = input.proof.proof else {
+                        panic!("expected compressed proof");
+                    };
+                    stdin.write_proof(proof, input.vk.vk);
+                }
+
+                println!("Proving the aggregated proof.");
+                let proof = client
+                    .prove(&agg_pk, stdin)
+                    .compressed()
+                    .run()
+                    .expect("failed to generate aggregation proof");
+                println!("Successfully generated aggregation proof!");
+
+                // verify the proof
+                client
+                    .verify(&proof, &agg_vk)
+                    .expect("failed to verify proof");
+                println!("Successfully verified aggregation proof!");
+
+                // create & save proof
+                println!("Saving proof.");
+                let proof_data = bincode::serialize(&proof).expect("failed to serialize proof");
+                std::fs::write(args.path.with_extension("agg.proof"), proof_data)
+                    .expect("failed to save SP1 Proof file");
+
+                // save public input
+                println!("Saving public inputs.");
+                std::fs::write(args.path.with_extension("agg.pub"), proof.public_values)
+                    .expect("failed to save SP1 public input");
+            }
         }
     }
 }

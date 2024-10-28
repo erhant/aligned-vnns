@@ -1,0 +1,9 @@
+{
+  "batch_merkle_root": "fdbada22eb1bddc65c0328caa8af5e647b037c846fa34eb4eb2f9e59f9beabf2",
+  "merkle_proof": "897dca79898b8bb5aa516cda7a9ea7e352855873a9eaadfc0656291e8fc1b7b61f444d30697213d041bd01117b9f08c2c346e096ccb4fa12d41986bab19d86b28d33cbe3cf74c15794d21cca284ab11b7df629ecfa537b1e9a9525b26abf59e148f55df88edb5f7ebebe581d66aefd9c5b976d0ae23242b5190ddec20347bee8",
+  "program_id_commitment": "4491254d8ff491a773e60e423039e35f008d38eb84bbc51d478839d635622feb",
+  "proof_commitment": "bbbc80c1fed6b1be0d187444adee86c486a8b6efd9009d7256bf01dc5da1ed35",
+  "proof_generator_addr": "f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  "pub_input_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+  "verification_data_batch_index": 0
+}

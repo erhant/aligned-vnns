@@ -3,7 +3,7 @@ pub fn compute_best_sample(samples: &[Vec<f32>], query: &[f32]) -> usize {
         .iter()
         .map(|sample| sample.iter().zip(query).map(|(a, b)| a * b).sum::<f32>())
         .enumerate()
-        .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+        .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
         .unwrap()
         .0
 }
@@ -26,4 +26,36 @@ pub fn iterative_similarity_search(
     }
 
     compute_best_sample(&current_samples, &query)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::vec;
+
+    use super::*;
+
+    #[test]
+    fn test_compute_best_sample() {
+        let samples = vec![
+            vec![0.101, 0.201, 0.301],
+            vec![0.401, 0.501, 0.601],
+            vec![0.700, 0.800, 0.900],
+        ];
+        let query = vec![0.1, 0.2, 0.3];
+        assert_eq!(compute_best_sample(&samples, &query), 0);
+    }
+
+    #[test]
+    fn test_iterative_similarity_search() {
+        let samples = vec![
+            vec![0.1, 0.2, 0.3],
+            vec![0.4, 0.5, 0.6],
+            vec![0.7, 0.8, 0.9],
+            vec![0.10, 0.11, 0.12],
+            vec![0.13, 0.14, 0.15],
+            vec![0.16, 0.17, 0.18],
+        ];
+        let query = vec![0.99, 0.99, 0.99];
+        assert_eq!(iterative_similarity_search(samples, query, 2), 2);
+    }
 }

@@ -1,50 +1,21 @@
 # Zero-Knowledge VectorDB
 
-A verifiable HNSW query program, powered by [SP1](https://github.com/succinctlabs/sp1).
+A verifiable nearest-neighbor search program, powered by [SP1](https://github.com/succinctlabs/sp1).
 
-> Built for Aligned Builders Hackathon, see [judging criteria](https://mirror.xyz/0x7794D1c55568270A81D8Bf39e1bcE96BEaC10901/JnG4agqhW0oiskZJgcFdi9SLKvqkTBrbXkuk1nT6lxk).
+> Built for [Aligned Builders Hackathon](https://devfolio.co/alignedhackathon/).
+>
+> - [Judging](https://mirror.xyz/0x7794D1c55568270A81D8Bf39e1bcE96BEaC10901/JnG4agqhW0oiskZJgcFdi9SLKvqkTBrbXkuk1nT6lxk).
 
-## Installation
+## Setup
+
+### Installation
 
 You need the following:
 
-- [Rust](https://rustup.rs/)
-- [SP1](https://docs.succinct.xyz/getting-started/install.html)
-- [Ollama](https://ollama.com/)
-- [Aligned SDK](https://docs.alignedlayer.com/introduction/1_try_aligned#quickstart)
-
-## Usage
-
-### Build the Program
-
-To build the program, run the following command:
-
-```sh
-cd program
-cargo prove build
-```
-
-### Execute the Program
-
-To run the program without generating a proof:
-
-```sh
-cd script
-RUST_LOG=info cargo run --release -- --execute
-```
-
-This will execute the program and display the output.
-
-### Generate a Core Proof
-
-To generate a core proof for your program:
-
-```sh
-cd script
-RUST_LOG=info cargo run --release -- --prove
-```
-
-This will save `sp1.proof` and `sp1.pub` within the [`script`](./script/) directory.
+- [Rust](https://rustup.rs/) for everything
+- [SP1](https://docs.succinct.xyz/getting-started/install.html) for zkVM
+- [Ollama](https://ollama.com/) for embeddings
+- [Aligned SDK](https://docs.alignedlayer.com/introduction/1_try_aligned#quickstart) for proof verification
 
 ### Wallet Generation
 
@@ -71,50 +42,71 @@ cast wallet address --keystore ./secrets/wallet.json
 First, deposit some funds to Aligned layer (skip this if you already have done so):
 
 ```sh
-aligned deposit-to-batcher \
---rpc_url https://ethereum-holesky-rpc.publicnode.com \
---network holesky \
---keystore_path ./secrets/wallet.json \
---amount 0.1ether
+./aligned deposit ./path/to/keystore.json
 ```
 
 This will print a transaction hash, which can be viewed at `https://holesky.etherscan.io/tx/<hash-here>`.
 
-Confirm that you have enough balance
+You can check your balance with:
 
 ```sh
-aligned get-user-balance \
---rpc_url https://ethereum-holesky-rpc.publicnode.com \
---network holesky \
---user_addr 0xB1ae88120FbF7F58348Fb9DC74a9cEb258f60c5E
+./aligned balance ./path/to/keystore.json
 ```
 
-### Sending a Proof
+## Usage
 
-You can send a proof with:
+### Build
+
+To build the VNNS program, run the following command:
 
 ```sh
-aligned submit \
---proving_system SP1 \
---proof ./data/foods-smol.sp1.proof \
---public_input ./data/foods-smol.sp1.pub \
---vm_program ./elf/riscv32im-succinct-zkvm-elf \
---batcher_url wss://batcher.alignedlayer.com \
---keystore_path ./secrets/wallet.json \
---network holesky \
---rpc_url https://ethereum-holesky-rpc.publicnode.com
+cd program
+cargo prove build --elf-name riscv32im-succinct-vnns-elf
 ```
 
-### Sending an Aggregated Proof
+To build the aggregator program:
 
 ```sh
-aligned submit \
---proving_system SP1 \
---proof ./data/foods-med.sp1.proof \
---public_input ./data/foods-med.sp1.pub \
---vm_program ./elf/riscv32im-succinct-aggregator-elf \
---batcher_url wss://batcher.alignedlayer.com \
---keystore_path ./secrets/wallet.json \
---network holesky \
---rpc_url https://ethereum-holesky-rpc.publicnode.com
+cd aggregator
+cargo prove build --elf-name riscv32im-succinct-aggregator-elf
 ```
+
+### Execute
+
+To run the program without generating a proof:
+
+```sh
+RUST_LOG=info cargo run --bin vnns-script --release -- --execute --path ./data/foods-small.json
+```
+
+This will execute the program and display the output.
+
+### Prove
+
+To generate a core proof for your program:
+
+```sh
+RUST_LOG=info cargo run --bin vnns-script --release -- --prove --path ./data/foods-small.json
+```
+
+This will generate many proofs (based on file size & batch size) and store them under the same directory as given in `path`.
+
+If `--aggregate` option is passed, it will aggregate and store the final proof as well with the extension `.agg.proof` and `.agg.pub`.
+
+### Submit
+
+Consider proofs generated for some data `./data.json`. You can submit all batches of proofs to Aligned Layer with:
+
+```sh
+./aligned.sh submit ./path/to/keystore.json ./data.json
+```
+
+To send the aggregated proof only, you can use:
+
+```sh
+./aligned.sh submit-agg ./path/to/keystore.json ./data.json
+```
+
+> [!NOTE]
+>
+> For each proof, it will ask for your keystore password.

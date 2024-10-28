@@ -1,10 +1,8 @@
-//! Given a set of samples, a query, and a number k, this program finds the k samples that are most similar to the query.
-
 #![no_main]
 sp1_zkvm::entrypoint!(main);
 
 use sha2::{Digest, Sha256};
-use zkvdb_lib::compute_best_sample;
+use vnns_lib::compute_best_sample;
 
 pub fn main() {
     let samples = sp1_zkvm::io::read::<Vec<Vec<f32>>>();

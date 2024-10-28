@@ -1,17 +1,7 @@
 [package]
 version = "0.1.0"
-name = "zkvdb-script"
+name = "vnns-script"
 edition = "2021"
-default-run = "zkvdb"
-
-[[bin]]
-name = "zkvdb"
-path = "src/bin/main.rs"
-
-# can probably remove this
-[[bin]]
-name = "evm"
-path = "src/bin/evm.rs"
 
 [dependencies]
 sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", tag = "v1.0.1" }
@@ -21,8 +11,8 @@ clap = { version = "4.0", features = ["derive", "env"] }
 tracing = "0.1.40"
 bincode = "1.3.3"
 
-zkvdb-lib = { path = "../lib" }
-zkvdb-embedder = { path = "../embedder" }
+vnns-lib = { path = "../lib" }
+vnns-embedder = { path = "../embedder" }
 
 hex.workspace = true
 

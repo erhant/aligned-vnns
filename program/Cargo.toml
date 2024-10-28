@@ -1,11 +1,11 @@
 [package]
 version = "0.1.0"
-name = "zkvdb-program"
+name = "vnns-program"
 edition = "2021"
 
 [dependencies]
 sp1-zkvm = { git = "https://github.com/succinctlabs/sp1.git", tag = "v1.0.1", features = [
     "verify",
 ] }
-zkvdb-lib = { path = "../lib" }
+vnns-lib = { path = "../lib" }
 sha2.workspace = true

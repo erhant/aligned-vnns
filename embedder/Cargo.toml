@@ -1,5 +1,5 @@
 [package]
-name = "zkvdb-embedder"
+name = "vnns-embedder"
 version = "0.1.0"
 publish = false
 edition = "2021"

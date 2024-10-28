@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use zkvdb_embedder::*;
+use vnns_embedder::*;
 
 #[derive(Parser)]
 #[command(name = "embedder")]
