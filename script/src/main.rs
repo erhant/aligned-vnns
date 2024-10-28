@@ -44,6 +44,10 @@ struct Args {
     /// Path to the data file.
     #[clap(short, long, default_value = "../data/foods-smol.json")]
     path: PathBuf,
+
+    /// Number of samples to be taken for each batch.
+    #[clap(long, default_value = "4")]
+    batch_size: usize,
 }
 
 enum ExecutionType {
@@ -120,22 +124,20 @@ fn main() {
             println!("Number of cycles: {}", report.total_instruction_count());
         }
         ExecutionType::Prove => {
-            const CHUNK_SIZE: usize = 3;
-
             // setup the program for proving.
             let (pk, vk) = client.setup(PROGRAM_ELF);
             let (agg_pk, agg_vk) = client.setup(AGGREGATOR_ELF);
 
             // generate similarity proofs
-            println!("Proving all chunks (chunk size {})", CHUNK_SIZE);
+            println!("Proving all chunks (batch size {})", args.batch_size);
             let mut proofs = Vec::new();
             let mut current_samples = samples;
-            while current_samples.len() > CHUNK_SIZE {
+            while current_samples.len() > args.batch_size {
                 // we will collect the best samples for this iteration here
                 let mut best_samples = Vec::new();
 
                 // process each chunk within the current samples
-                for (chunk_idx, chunk) in current_samples.chunks(CHUNK_SIZE).enumerate() {
+                for (chunk_idx, chunk) in current_samples.chunks(args.batch_size).enumerate() {
                     println!("Generating proof for chunk {}.", chunk_idx);
                     let mut stdin = SP1Stdin::new();
                     stdin.write(&chunk);
@@ -202,11 +204,12 @@ fn main() {
 
             // save all proofs & publics to file
             for (i, proof) in proofs.iter().enumerate() {
+                println!("Saving proof.");
                 let proof_data = bincode::serialize(proof).expect("failed to serialize proof");
                 std::fs::write(args.path.with_extension(format!("{}.proof", i)), proof_data)
                     .expect("failed to save SP1 proof");
 
-                println!("Saving public inputs.");
+                println!("Saving public input.");
                 std::fs::write(
                     args.path.with_extension(format!("{}.pub", i)),
                     proof.public_values.clone(),

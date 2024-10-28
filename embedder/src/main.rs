@@ -33,11 +33,6 @@ enum Commands {
         #[arg(short, long, help = "Model to use for embedding generation", default_value = DEFAULT_MODEL)]
         model: String,
     },
-    /// Export embedded data to a Rust constant vector
-    Export {
-        #[arg(short, long, help = "Path to the data file")]
-        path: String,
-    },
 }
 
 #[tokio::main]
@@ -50,9 +45,6 @@ async fn main() {
         }
         Commands::Query { path, text, model } => {
             query(path, text, model).await;
-        }
-        Commands::Export { path } => {
-            export(path).await;
         }
     }
 }

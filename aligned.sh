@@ -24,6 +24,7 @@ balance() {
     --user_addr "$address"
 }
 
+# Submit the final aggregated proof only
 submitagg() {
   local keystore_path=$1
   local json_path=$2
@@ -47,6 +48,7 @@ submitagg() {
     --rpc_url $RPC_URL
 }
 
+# Submit all proofs that resulted from the batched proofs
 submit() {
   local keystore_path=$1
   local json_path=$2
