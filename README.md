@@ -4,7 +4,7 @@ A **verifiable nearest-neighbor search** program, powered by [SP1](https://githu
 
 This project was built for [Aligned Builders Hackathon](https://devfolio.co/alignedhackathon/):
 
-- [Project TODO: !!!](/)
+- [Project Link](https://devfolio.co/projects/verifiable-similarity-27b9)
 - [Presentation](./vnns-presentation.pdf)
 
 The requested information as per the [judging criteria](https://mirror.xyz/0x7794D1c55568270A81D8Bf39e1bcE96BEaC10901/JnG4agqhW0oiskZJgcFdi9SLKvqkTBrbXkuk1nT6lxk) has been given within the project link above.
