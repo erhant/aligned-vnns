@@ -9,7 +9,7 @@ This project was built for [Aligned Builders Hackathon](https://devfolio.co/alig
 
 It has [won the 3rd place](https://x.com/alignedlayer/status/1862163883567559092)!
 
-The requested information as per the [judging criteria](https://mirror.xyz/0x7794D1c55568270A81D8Bf39e1bcE96BEaC10901/JnG4agqhW0oiskZJgcFdi9SLKvqkTBrbXkuk1nT6lxk) has been given within the project link above.
+The requested information as per the [judging criteria](https://blog.alignedlayer.com/aligned-builders-hackathon-prizes-and-judging-criteria/) has been given within the project link above.
 
 ## Setup
 
